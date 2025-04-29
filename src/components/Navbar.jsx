@@ -1,39 +1,70 @@
-import { Link, useNavigate } from "react-router-dom";
-import { BiCameraMovie, BiSearchAlt2} from "react-icons/bi";
-import { useState } from "react";
-
-import "./Navbar.css"
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { BiCameraMovie, BiSearchAlt2, BiHomeAlt, BiMovie } from "react-icons/bi";
+import { useState, useEffect } from "react";
+import "./Navbar.css";
 
 const Navbar = () => {
   const [search, setSearch] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (search.trim()) {
+      navigate(`/search?q=${encodeURIComponent(search)}`);
+      setSearch("");
+    }
+  };
 
-    if(!search) return;
-
-    navigate(`/search?q=${search}`, {replace: true});
-    setSearch("");
-  }
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
 
   return (
-    <nav id="navbar">
-        <h2>
-            <Link to="/"><BiCameraMovie /> PirateFlix</Link>
-        </h2>
-        <form onSubmit={handleSubmit}>
-            <input type="text" 
-            placeholder="Busque um filme" 
-            onChange={(e) => setSearch(e.target.value)}
-            value={search} 
-            />
-            <button type="submit">
-                <BiSearchAlt2 />
-            </button>
-        </form>
-    </nav>
-  )
-}
+    <nav className={`navbar ${isScrolled ? "scrolled" : ""}`}>
+      <div className="navbar-content">
+        <div className="navbar-left">
+          <Link to="/" className="logo">
+            <BiCameraMovie /> PirateFlix
+          </Link>
+          <div className="nav-links">
+            <Link to="/" className={isActive("/") ? "active" : ""}>
+              <BiHomeAlt /> Início
+            </Link>
+            <Link to="/popular" className={isActive("/popular") ? "active" : ""}>
+              <BiMovie /> Populares
+            </Link>
+          </div>
+        </div>
 
-export default Navbar
+        <form onSubmit={handleSubmit} className="search-form">
+          <input
+            type="text"
+            placeholder="Buscar filmes..."
+            onChange={(e) => setSearch(e.target.value)}
+            value={search}
+          />
+          <button type="submit" className="search-button">
+            <BiSearchAlt2 />
+          </button>
+        </form>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
